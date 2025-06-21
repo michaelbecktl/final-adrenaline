@@ -320,33 +320,31 @@ scene.add(light)
 // PC Controls //
 const keyPress = {}
 
-if (gameStart) {
-  document.addEventListener('keydown', function (event) {
-    switch (event.key) {
-      case 'a':
-      case 'ArrowLeft':
-        keyPress.left = true
-        break
-      case 'd':
-      case 'ArrowRight':
-        keyPress.right = true
-        break
-    }
-  })
+document.addEventListener('keydown', function (event) {
+  switch (event.key) {
+    case 'a':
+    case 'ArrowLeft':
+      keyPress.left = true
+      break
+    case 'd':
+    case 'ArrowRight':
+      keyPress.right = true
+      break
+  }
+})
 
-  document.addEventListener('keyup', function (event) {
-    switch (event.key) {
-      case 'a':
-      case 'ArrowLeft':
-        keyPress.left = false
-        break
-      case 'd':
-      case 'ArrowRight':
-        keyPress.right = false
-        break
-    }
-  })
-}
+document.addEventListener('keyup', function (event) {
+  switch (event.key) {
+    case 'a':
+    case 'ArrowLeft':
+      keyPress.left = false
+      break
+    case 'd':
+    case 'ArrowRight':
+      keyPress.right = false
+      break
+  }
+})
 
 // Mobile Controls //
 
