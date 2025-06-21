@@ -115,7 +115,8 @@ explosions.forEach((sfx) => (sfx.volume = 0.15))
 // Field //
 const fieldGeometry = new THREE.PlaneGeometry(1000, 1000)
 const fieldMaterial = new THREE.MeshBasicMaterial({
-  color: 0xd2bca5,
+  // color: 0xd2bca5,
+  color: 0x20293e,
 })
 
 const field = new THREE.Mesh(fieldGeometry, fieldMaterial)
@@ -216,8 +217,8 @@ function createBuilding() {
 
   // Building Spawn Points //
   const beforeGamePos = [
-    Math.round(randomNumber(-110, -40)),
-    Math.round(randomNumber(110, 40)),
+    Math.round(randomNumber(-110, -20)),
+    Math.round(randomNumber(110, 20)),
   ]
   const buildingPosX = beforeGamePos[randomNumber(0, 1)]
   const buildingPosY = -5
