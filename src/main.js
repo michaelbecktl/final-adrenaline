@@ -8,7 +8,7 @@ const scene = new THREE.Scene()
 scene.background = new THREE.Color(0x161225)
 
 const camera = new THREE.PerspectiveCamera(
-  120,
+  80,
   window.innerWidth / window.innerHeight,
   0.1,
   1000
@@ -157,7 +157,7 @@ const extrudeSettings = {
   bevelThickness: 0.6,
   bevelSize: 0.5,
   bevelOffset: 0.25,
-  bevelSegments: 0.5,
+  bevelSegments: 1,
 }
 
 const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
@@ -224,9 +224,9 @@ const randomNumber = (min, max) =>
 
 function createBuilding() {
   // Building Dimensions //
-  const buildingWidth = Math.round(randomNumber(10, 20))
-  const buildingHeight = Math.round(randomNumber(20, 60))
-  const buildingDepth = Math.round(randomNumber(5, 20))
+  const buildingWidth = Math.round(randomNumber(8, 15))
+  const buildingHeight = Math.round(randomNumber(20, 80))
+  const buildingDepth = Math.round(randomNumber(5, 15))
 
   // Building Spawn Points //
   const beforeGamePos = [
@@ -235,7 +235,7 @@ function createBuilding() {
   ]
   const buildingPosX = beforeGamePos[randomNumber(0, 1)]
   const buildingPosY = -3
-  const buildingPosZ = Math.round(randomNumber(0, -400)) - 100
+  const buildingPosZ = Math.round(randomNumber(0, -400))
 
   const buildingGeometry = new THREE.BoxGeometry(
     buildingWidth,
@@ -310,7 +310,7 @@ const allBoundariesBB = allBoundaries.map((mesh) => createBoundingBox(mesh))
 // const axesHelper = new THREE.AxesHelper(5)
 // scene.add(axesHelper)
 
-// camera.position.set(1, 3, 10)
+camera.position.set(1, 3, 10)
 
 // Light //
 const light = new THREE.DirectionalLight(0xffffff, 3)
@@ -320,33 +320,31 @@ scene.add(light)
 // PC Controls //
 const keyPress = {}
 
-if (gameStart) {
-  document.addEventListener('keydown', function (event) {
-    switch (event.key) {
-      case 'a':
-      case 'ArrowLeft':
-        keyPress.left = true
-        break
-      case 'd':
-      case 'ArrowRight':
-        keyPress.right = true
-        break
-    }
-  })
+document.addEventListener('keydown', function (event) {
+  switch (event.key) {
+    case 'a':
+    case 'ArrowLeft':
+      keyPress.left = true
+      break
+    case 'd':
+    case 'ArrowRight':
+      keyPress.right = true
+      break
+  }
+})
 
-  document.addEventListener('keyup', function (event) {
-    switch (event.key) {
-      case 'a':
-      case 'ArrowLeft':
-        keyPress.left = false
-        break
-      case 'd':
-      case 'ArrowRight':
-        keyPress.right = false
-        break
-    }
-  })
-}
+document.addEventListener('keyup', function (event) {
+  switch (event.key) {
+    case 'a':
+    case 'ArrowLeft':
+      keyPress.left = false
+      break
+    case 'd':
+    case 'ArrowRight':
+      keyPress.right = false
+      break
+  }
+})
 
 // Mobile Controls //
 
@@ -371,7 +369,7 @@ document.addEventListener('touchend', function (event) {
 let velocity = 0.5
 let velocitySettings = 0.5
 let velocityRamp = 1
-const rampSettings = 1.00015
+const rampSettings = 1.0003
 let shipTurnSpeed = 0
 const shipMaxTurnSpeed = 0.4
 const acceleration = 0.01
@@ -412,6 +410,8 @@ function animate() {
     if (camera.position.x < ship.position.x) camera.position.x += camReadjust
 
     if (shipTurnSpeed < 0.01 && shipTurnSpeed > -0.01) shipTurnSpeed = 0
+    if (camera.position.x < camReadjust && camera.position.x > -camReadjust)
+      camera.position.x = shipTurnSpeed
     ship.position.x += shipTurnSpeed
   }
 
@@ -434,9 +434,9 @@ function animate() {
 
       building.geometry.dispose()
 
-      const buildingWidth = Math.round(randomNumber(10, 20))
-      const buildingHeight = Math.round(randomNumber(20, 60))
-      const buildingDepth = Math.round(randomNumber(5, 20))
+      const buildingWidth = Math.round(randomNumber(8, 15))
+      const buildingHeight = Math.round(randomNumber(20, 80))
+      const buildingDepth = Math.round(randomNumber(5, 15))
 
       building.geometry = new THREE.BoxGeometry(
         buildingWidth,
