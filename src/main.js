@@ -348,22 +348,32 @@ document.addEventListener('keyup', function (event) {
 
 // Mobile Controls //
 
-document.addEventListener('touchstart', function (event) {
-  const touch = event.touches[0]
-  if (touch.clientX < window.innerWidth / 2) {
-    keyPress.left = true
-    keyPress.right = false
-  }
-  if (touch.clientX > window.innerWidth / 2) {
-    keyPress.left = false
-    keyPress.right = true
-  }
-})
+document.addEventListener(
+  'touchstart',
+  function (event) {
+    if (gameStart) event.preventDefault()
+    const touch = event.touches[0]
+    if (touch.clientX < window.innerWidth / 2) {
+      keyPress.left = true
+      keyPress.right = false
+    }
+    if (touch.clientX > window.innerWidth / 2) {
+      keyPress.left = false
+      keyPress.right = true
+    }
+  },
+  { passive: false }
+)
 
-document.addEventListener('touchend', function (event) {
-  keyPress.left = false
-  keyPress.right = false
-})
+document.addEventListener(
+  'touchend',
+  function (event) {
+    if (gameStart) event.preventDefault()
+    keyPress.left = false
+    keyPress.right = false
+  },
+  { passive: false }
+)
 
 // Animation //
 let velocity = 1
