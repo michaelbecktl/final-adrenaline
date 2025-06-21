@@ -7,5 +7,5 @@ created to practice working with Three.js and to improve my
 understanding of programming logic. I hope you enjoy it as much as I
 enjoyed building it!
 
-**Music Credits:** Zen_Man (Melodic Techno)
+**Music Credits:** Zen_Man (Melodic Techno)  
 **Created With:** JavaScript, ThreeJS, HTML, CSS
