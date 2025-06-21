@@ -18,19 +18,19 @@ const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
-// const renderScene = new RenderPass(scene, camera)
-// const bloomPass = new UnrealBloomPass(
-//   new THREE.Vector2(window.innerWidth, window.innerHeight),
-//   1.5,
-//   0.4,
-//   100
-// )
-// bloomPass.threshold = 0
-// bloomPass.strength = 0.2
-// bloomPass.radius = 0
-// const composer = new EffectComposer(renderer)
-// composer.addPass(renderScene)
-// composer.addPass(bloomPass)
+const renderScene = new RenderPass(scene, camera)
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  1.5,
+  0.4,
+  100
+)
+bloomPass.threshold = 0
+bloomPass.strength = 0.2
+bloomPass.radius = 0
+const composer = new EffectComposer(renderer)
+composer.addPass(renderScene)
+composer.addPass(bloomPass)
 
 // const orbitControls = new OrbitControls(camera, renderer.domElement)
 
@@ -99,8 +99,6 @@ function setVolume() {
   bgm.volume = 0.15
 }
 setVolume()
-
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g data-name="medium audio"><path d="M11.46 3c-1 0-1 .13-6.76 4H1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3.7l5.36 3.57A2.54 2.54 0 0 0 14 18.46V5.54A2.54 2.54 0 0 0 11.46 3zM2 9h2v6H2zm10 9.46a.55.55 0 0 1-.83.45L6 15.46V8.54l5.17-3.45a.55.55 0 0 1 .83.45zM16.83 9.17a1 1 0 0 0-1.42 1.42 2 2 0 0 1 0 2.82 1 1 0 0 0 .71 1.71c1.38 0 3.04-3.62.71-5.95z"/><path d="M19 7.05a1 1 0 0 0-1.41 1.41 5 5 0 0 1 0 7.08 1 1 0 0 0 .7 1.7c1.61 0 4.8-6.05.71-10.19z"/></g></svg>
 
 // Sound Effect //
 const explodeSFX1 = new Audio('public/8-bit-explosion-3-340456.mp3')
@@ -234,7 +232,7 @@ function createBuilding() {
   return buildingMesh
 }
 
-const numOfBuildings = 12
+const numOfBuildings = 15
 const allBuildings = Array(numOfBuildings).fill().map(createBuilding)
 
 allBuildings.forEach((mesh) => scene.add(mesh))
@@ -332,12 +330,12 @@ document.addEventListener('keyup', function (event) {
 let velocity = 1
 let velocityRamp = 1
 let shipTurnSpeed = 0
-const shipMaxTurnSpeed = 0.4
-const acceleration = 0.01
-const forceFeedback = 0.02
+const shipMaxTurnSpeed = 0.8
+const acceleration = 0.02
+const forceFeedback = 0.04
 
-const camAcceleration = 0.4
-const camReadjust = 0.02
+const camAcceleration = 0.8
+const camReadjust = 0.08
 
 function animate() {
   velocity *= velocityRamp
@@ -424,7 +422,7 @@ function animate() {
   shipBB.copy(ship.geometry.boundingBox).applyMatrix4(ship.matrixWorld)
 
   if (gameStart) checkCollision()
-  renderer.render(scene, camera)
-  // composer.render()
+  // renderer.render(scene, camera)
+  composer.render()
 }
 renderer.setAnimationLoop(animate)
