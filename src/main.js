@@ -18,19 +18,19 @@ const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
-const renderScene = new RenderPass(scene, camera)
-const bloomPass = new UnrealBloomPass(
-  new THREE.Vector2(window.innerWidth, window.innerHeight),
-  1.5,
-  0.4,
-  100
-)
-bloomPass.threshold = 0
-bloomPass.strength = 0.2
-bloomPass.radius = 0
-const composer = new EffectComposer(renderer)
-composer.addPass(renderScene)
-composer.addPass(bloomPass)
+// const renderScene = new RenderPass(scene, camera)
+// const bloomPass = new UnrealBloomPass(
+//   new THREE.Vector2(window.innerWidth, window.innerHeight),
+//   1.5,
+//   0.4,
+//   100
+// )
+// bloomPass.threshold = 0
+// bloomPass.strength = 0.2
+// bloomPass.radius = 0
+// const composer = new EffectComposer(renderer)
+// composer.addPass(renderScene)
+// composer.addPass(bloomPass)
 
 // const orbitControls = new OrbitControls(camera, renderer.domElement)
 
@@ -50,7 +50,7 @@ function startGame() {
   resetParams()
   velocityRamp = 1.0003
   setTimeout(() => {
-    ;(gameStart = true), (timer = 0), (timerId = setInterval(addTime, 100))
+    ;(gameStart = true), (timer = 0), (timerId = setInterval(addTime, 200))
   }, 100)
 }
 
@@ -105,12 +105,27 @@ window.addEventListener('click', () => {
 })
 
 // Sound Effect //
-const explodeSFX1 = new Audio('/8-bit-explosion-3-340456.mp3')
-const explodeSFX2 = new Audio('/8-bit-explosion-10-340462.mp3')
-const explodeSFX3 = new Audio('/explosion-9-340460.mp3')
 
-const explosions = [explodeSFX1, explodeSFX2, explodeSFX3]
-explosions.forEach((sfx) => (sfx.volume = 0.15))
+const explosionSounds = [
+  '/8-bit-explosion-3-340456.mp3',
+  '/8-bit-explosion-10-340462.mp3',
+  '/explosion-9-340460.mp3',
+]
+
+const explosionSFX = new Audio() // OPTIMIZED //
+explosionSFX.volume = 0.15
+
+function playExplosion() {
+  explosionSFX.src = explosionSounds[randomNumber(0, 2)]
+  explosionSFX.play()
+}
+
+// const explodeSFX1 = new Audio('/8-bit-explosion-3-340456.mp3') // OLD CODE //
+// const explodeSFX2 = new Audio('/8-bit-explosion-10-340462.mp3')
+// const explodeSFX3 = new Audio('/explosion-9-340460.mp3')
+
+// const explosions = [explodeSFX1, explodeSFX2, explodeSFX3]
+// explosions.forEach((sfx) => (sfx.volume = 0.15))
 
 // Field //
 const fieldGeometry = new THREE.PlaneGeometry(1000, 1000)
@@ -122,7 +137,6 @@ const fieldMaterial = new THREE.MeshBasicMaterial({
 const field = new THREE.Mesh(fieldGeometry, fieldMaterial)
 field.rotation.x = -Math.PI / 2
 field.position.y = -4
-field.receiveShadow = true
 scene.add(field)
 
 // Ship Body //
@@ -153,8 +167,6 @@ const material = new THREE.MeshStandardMaterial({
 })
 
 const ship = new THREE.Mesh(geometry, material)
-ship.castShadow = true
-ship.receiveShadow = true
 
 ship.position.set(0, 0, 1)
 
@@ -173,16 +185,17 @@ const displayHighScore = document.getElementById('highScore')
 let timer = 0
 let timerId = null
 
+const displayTime = document.getElementById('timer')
+
 function addTime() {
-  const displayTime = document.getElementById('timer')
-  timer += 0.5
+  timer += 1
   displayTime.innerText = timer.toFixed(0)
 }
 
 // Collision Logic //
 
 function collision() {
-  explosions[randomNumber(0, 2)].play()
+  playExplosion()
   gameStart = false
   ship.material.color = new THREE.Color(0xec0000)
   velocity = 0
@@ -307,31 +320,33 @@ scene.add(light)
 // PC Controls //
 const keyPress = {}
 
-document.addEventListener('keydown', function (event) {
-  switch (event.key) {
-    case 'a':
-    case 'ArrowLeft':
-      keyPress.left = true
-      break
-    case 'd':
-    case 'ArrowRight':
-      keyPress.right = true
-      break
-  }
-})
+if (gameStart) {
+  document.addEventListener('keydown', function (event) {
+    switch (event.key) {
+      case 'a':
+      case 'ArrowLeft':
+        keyPress.left = true
+        break
+      case 'd':
+      case 'ArrowRight':
+        keyPress.right = true
+        break
+    }
+  })
 
-document.addEventListener('keyup', function (event) {
-  switch (event.key) {
-    case 'a':
-    case 'ArrowLeft':
-      keyPress.left = false
-      break
-    case 'd':
-    case 'ArrowRight':
-      keyPress.right = false
-      break
-  }
-})
+  document.addEventListener('keyup', function (event) {
+    switch (event.key) {
+      case 'a':
+      case 'ArrowLeft':
+        keyPress.left = false
+        break
+      case 'd':
+      case 'ArrowRight':
+        keyPress.right = false
+        break
+    }
+  })
+}
 
 // Mobile Controls //
 
@@ -367,8 +382,6 @@ function animate() {
   velocity *= velocityRamp
 
   // Controls //
-  if (!gameStart) {
-  }
   if (gameStart) {
     if (keyPress.left) {
       if (shipTurnSpeed > -shipMaxTurnSpeed) shipTurnSpeed -= acceleration
@@ -448,7 +461,7 @@ function animate() {
   shipBB.copy(ship.geometry.boundingBox).applyMatrix4(ship.matrixWorld)
 
   if (gameStart) checkCollision()
-  // renderer.render(scene, camera)
-  composer.render()
+  renderer.render(scene, camera)
+  // composer.render()
 }
 renderer.setAnimationLoop(animate)
