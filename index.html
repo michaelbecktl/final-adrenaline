@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <link rel="stylesheet" href="/src/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Electrolize&family=Stalinist+One&display=swap"
+      rel="stylesheet"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script type="importmap">
       {
@@ -17,18 +21,46 @@
   </head>
   <body>
     <script type="module" src="/src/main.js"></script>
+    <audio
+      id="bgm"
+      src="public/melodic-techno-03-extended-version-moogify-9867.mp3"
+      autoplay
+      loop
+    ></audio>
     <div class="htmlContainer">
-      <!-- <div id="menu">
+      <div id="menu">
         <h1>Final Adrenaline</h1>
         <p>
           All decel systems have flatlined. You’re coasting through space with
-          no brakes. You embrace your final moments—adrift, alive, and burning
-          with adrenaline.
+          no brakes, full thrust. You embrace your final moments—adrift, alive,
+          and burning with adrenaline.
         </p>
         <p>Controls: A & D to Steer</p>
 
+        <button id="startButton">Game Start</button>
+        <button id="showAboutMe">About</button>
         <p id="highScore">High Score: 0</p>
-      </div> -->
+      </div>
+      <div id="gameOver" class="hide">
+        <h1>You crashed!</h1>
+        <p id="timeResult"></p>
+        <button id="tryAgain">Retry</button>
+        <button id="exitResult">Back to Menu</button>
+      </div>
+      <div id="aboutMe" class="hide">
+        <h1>About Me</h1>
+        <p>21st June 2025</p>
+        <p>
+          Hey there! My name is Michael Beck, and I’m an aspiring developer who
+          began learning to code in March 2025. This is a small project I
+          created to practice working with Three.js and to improve my
+          understanding of programming logic. I hope you enjoy it as much as I
+          enjoyed building it!
+        </p>
+        <p>Music Credits: Zen_Man (Melodic Techno)</p>
+        <button id="exitAbout">Back to Menu</button>
+      </div>
+      <div><p id="timer"></p></div>
     </div>
   </body>
 </html>

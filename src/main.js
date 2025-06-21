@@ -25,16 +25,90 @@ document.body.appendChild(renderer.domElement)
 //   0.4,
 //   100
 // )
-// bloomPass.threshold = 0.0
-// bloomPass.strength = 3.0
+// bloomPass.threshold = 0
+// bloomPass.strength = 0.2
 // bloomPass.radius = 0
 // const composer = new EffectComposer(renderer)
 // composer.addPass(renderScene)
 // composer.addPass(bloomPass)
 
-// Game Logic //
 // const orbitControls = new OrbitControls(camera, renderer.domElement)
-let gameStart = true
+
+// Menu UI Logic//
+function resetParams() {
+  velocity = 1
+  velocityRamp = 1
+  ship.position.set(0, 0, 1)
+  shipTurnSpeed = 0
+  ship.rotation.z = 0
+  camera.position.set(1, 3, 10)
+  shipBB.copy(ship.geometry.boundingBox).applyMatrix4(ship.matrixWorld)
+  ship.material.color = new THREE.Color(0xeeeeee)
+}
+
+function startGame() {
+  resetParams()
+  velocityRamp = 1.0003
+  setTimeout(() => {
+    ;(gameStart = true), (timer = 0), (timerId = setInterval(addTime, 100))
+  }, 100)
+}
+
+const gameMenu = document.getElementById('menu')
+const gameOver = document.getElementById('gameOver')
+
+const startButton = document.getElementById('startButton')
+startButton.addEventListener('click', function () {
+  gameMenu.classList.add('hide')
+
+  startGame()
+})
+
+const tryAgainButton = document.getElementById('tryAgain')
+tryAgainButton.addEventListener('click', function () {
+  const gameOver = document.getElementById('gameOver')
+  gameOver.classList.add('hide')
+  startGame()
+})
+
+const exitResult = document.getElementById('exitResult')
+exitResult.addEventListener('click', function () {
+  resetParams()
+  gameMenu.classList.remove('hide')
+  gameOver.classList.add('hide')
+})
+
+const aboutMe = document.getElementById('aboutMe')
+const showAboutMe = document.getElementById('showAboutMe')
+showAboutMe.addEventListener('click', function () {
+  gameMenu.classList.add('hide')
+  aboutMe.classList.remove('hide')
+})
+
+const exitAbout = document.getElementById('exitAbout')
+exitAbout.addEventListener('click', function () {
+  resetParams()
+  gameMenu.classList.remove('hide')
+  aboutMe.classList.add('hide')
+})
+
+// Music //
+
+function setVolume() {
+  const bgm = document.getElementById('bgm')
+  bgm.volume = 0.15
+}
+setVolume()
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g data-name="medium audio"><path d="M11.46 3c-1 0-1 .13-6.76 4H1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3.7l5.36 3.57A2.54 2.54 0 0 0 14 18.46V5.54A2.54 2.54 0 0 0 11.46 3zM2 9h2v6H2zm10 9.46a.55.55 0 0 1-.83.45L6 15.46V8.54l5.17-3.45a.55.55 0 0 1 .83.45zM16.83 9.17a1 1 0 0 0-1.42 1.42 2 2 0 0 1 0 2.82 1 1 0 0 0 .71 1.71c1.38 0 3.04-3.62.71-5.95z"/><path d="M19 7.05a1 1 0 0 0-1.41 1.41 5 5 0 0 1 0 7.08 1 1 0 0 0 .7 1.7c1.61 0 4.8-6.05.71-10.19z"/></g></svg>
+
+// Sound Effect //
+const explodeSFX1 = new Audio('public/8-bit-explosion-3-340456.mp3')
+const explodeSFX2 = new Audio('public/8-bit-explosion-10-340462.mp3')
+const explodeSFX3 = new Audio('public/explosion-9-340460.mp3')
+
+const explosions = [explodeSFX1, explodeSFX2, explodeSFX3]
+explosions.forEach((sfx) => (sfx.volume = 0.15))
 
 // Field //
 const fieldGeometry = new THREE.PlaneGeometry(1000, 1000)
@@ -87,8 +161,36 @@ scene.add(ship)
 const shipBB = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3())
 shipBB.setFromObject(ship)
 
+// Game Logic //
+let gameStart = false
+let highScore = 0
+const displayHighScore = document.getElementById('highScore')
+
+// Timer //
+let timer = 0
+let timerId = null
+
+function addTime() {
+  const displayTime = document.getElementById('timer')
+  timer += 0.5
+  displayTime.innerText = timer.toFixed(0)
+}
+
+// Collision Logic //
+
 function collision() {
+  explosions[randomNumber(0, 2)].play()
+  gameStart = false
   ship.material.color = new THREE.Color(0xec0000)
+  velocity = 0
+  velocityRamp = 1
+  clearInterval(timerId)
+  if (timer > highScore) {
+    highScore = timer.toFixed(0)
+    displayHighScore.innerText = `High Score: ${highScore}`
+  }
+
+  gameOver.classList.remove('hide')
 }
 
 function checkCollision() {
@@ -189,12 +291,10 @@ allBoundaries.forEach((boundary) => scene.add(boundary))
 const allBoundariesBB = allBoundaries.map((mesh) => createBoundingBox(mesh))
 
 // Axes Helper //
-const axesHelper = new THREE.AxesHelper(5)
-scene.add(axesHelper)
+// const axesHelper = new THREE.AxesHelper(5)
+// scene.add(axesHelper)
 
-camera.position.z = 10
-camera.position.y = 3
-camera.position.x = 1
+// camera.position.set(1, 3, 10)
 
 // Light //
 const light = new THREE.DirectionalLight(0xffffff, 3)
@@ -230,7 +330,7 @@ document.addEventListener('keyup', function (event) {
 
 // Animation //
 let velocity = 1
-const velocityRamp = gameStart ? 1.0003 : 0
+let velocityRamp = 1
 let shipTurnSpeed = 0
 const shipMaxTurnSpeed = 0.4
 const acceleration = 0.01
@@ -243,7 +343,8 @@ function animate() {
   velocity *= velocityRamp
 
   // Controls //
-
+  if (!gameStart) {
+  }
   if (gameStart) {
     if (keyPress['a']) {
       if (shipTurnSpeed > -shipMaxTurnSpeed) shipTurnSpeed -= acceleration
@@ -322,7 +423,8 @@ function animate() {
 
   shipBB.copy(ship.geometry.boundingBox).applyMatrix4(ship.matrixWorld)
 
-  checkCollision()
+  if (gameStart) checkCollision()
   renderer.render(scene, camera)
+  // composer.render()
 }
 renderer.setAnimationLoop(animate)
