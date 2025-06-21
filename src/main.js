@@ -100,6 +100,10 @@ function setVolume() {
 }
 setVolume()
 
+window.addEventListener('click', () => {
+  bgm.play()
+})
+
 // Sound Effect //
 const explodeSFX1 = new Audio('/8-bit-explosion-3-340456.mp3')
 const explodeSFX2 = new Audio('/8-bit-explosion-10-340462.mp3')
