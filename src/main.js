@@ -8,7 +8,7 @@ const scene = new THREE.Scene()
 scene.background = new THREE.Color(0x161225)
 
 const camera = new THREE.PerspectiveCamera(
-  75,
+  120,
   window.innerWidth / window.innerHeight,
   0.1,
   1000
@@ -18,22 +18,23 @@ const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
-const renderScene = new RenderPass(scene, camera)
-const bloomPass = new UnrealBloomPass(
-  new THREE.Vector2(window.innerWidth, window.innerHeight),
-  1.5,
-  0.4,
-  100
-)
-bloomPass.threshold = 0.0
-bloomPass.strength = 3.0
-bloomPass.radius = 0
-const composer = new EffectComposer(renderer)
-composer.addPass(renderScene)
-composer.addPass(bloomPass)
+// const renderScene = new RenderPass(scene, camera)
+// const bloomPass = new UnrealBloomPass(
+//   new THREE.Vector2(window.innerWidth, window.innerHeight),
+//   1.5,
+//   0.4,
+//   100
+// )
+// bloomPass.threshold = 0.0
+// bloomPass.strength = 3.0
+// bloomPass.radius = 0
+// const composer = new EffectComposer(renderer)
+// composer.addPass(renderScene)
+// composer.addPass(bloomPass)
 
-// Controls //
-const controls = new OrbitControls(camera, renderer.domElement)
+// Game Logic //
+// const orbitControls = new OrbitControls(camera, renderer.domElement)
+let gameStart = true
 
 // Field //
 const fieldGeometry = new THREE.PlaneGeometry(1000, 1000)
@@ -78,7 +79,7 @@ const ship = new THREE.Mesh(geometry, material)
 ship.castShadow = true
 ship.receiveShadow = true
 
-ship.position.set(0, 0, -5)
+ship.position.set(0, 0, 1)
 
 scene.add(ship)
 
@@ -94,6 +95,9 @@ function checkCollision() {
   allBuildingsBB.forEach((buildings) => {
     if (shipBB.intersectsBox(buildings)) collision()
   })
+  allBoundariesBB.forEach((boundary) => {
+    if (shipBB.intersectsBox(boundary)) collision()
+  })
 }
 
 // Buildings //
@@ -107,7 +111,11 @@ function createBuilding() {
   const buildingDepth = Math.round(randomNumber(10, 20))
 
   // Building Spawn Points //
-  const buildingPosX = Math.round(randomNumber(-110, 110))
+  const beforeGamePos = [
+    Math.round(randomNumber(-110, -40)),
+    Math.round(randomNumber(110, 40)),
+  ]
+  const buildingPosX = beforeGamePos[randomNumber(0, 1)]
   const buildingPosY = -5
   const buildingPosZ = Math.round(randomNumber(0, -1000)) - 100
 
@@ -185,7 +193,7 @@ const axesHelper = new THREE.AxesHelper(5)
 scene.add(axesHelper)
 
 camera.position.z = 10
-camera.position.y = 5
+camera.position.y = 3
 camera.position.x = 1
 
 // Light //
@@ -193,33 +201,126 @@ const light = new THREE.DirectionalLight(0xffffff, 3)
 light.position.set(0, 10, 10)
 scene.add(light)
 
+// Controls //
+const keyPress = {}
+
+document.addEventListener('keydown', function (event) {
+  switch (event.key) {
+    case 'a':
+    case 'ArrowLeft':
+      keyPress[event.key] = true
+      break
+    case 'd':
+    case 'ArrowRight':
+      keyPress[event.key] = true
+      break
+  }
+})
+
+document.addEventListener('keyup', function (event) {
+  switch (event.key) {
+    case 'a':
+      keyPress[event.key] = false
+      break
+    case 'd':
+      keyPress[event.key] = false
+      break
+  }
+})
+
 // Animation //
-let velocity = 0.5
-const velocityRamp = 1.000001
+let velocity = 1
+const velocityRamp = gameStart ? 1.0003 : 0
+let shipTurnSpeed = 0
+const shipMaxTurnSpeed = 0.4
+const acceleration = 0.01
+const forceFeedback = 0.02
+
+const camAcceleration = 0.4
+const camReadjust = 0.02
 
 function animate() {
-  allBuildings.forEach(
-    (building) => (building.position.z += velocity *= velocityRamp)
-  )
+  velocity *= velocityRamp
 
-  allBoundaries.forEach((building) => {
-    building.position.z += velocity *= velocityRamp
+  // Controls //
+
+  if (gameStart) {
+    if (keyPress['a']) {
+      if (shipTurnSpeed > -shipMaxTurnSpeed) shipTurnSpeed -= acceleration
+      if (ship.rotation.z < shipMaxTurnSpeed) ship.rotation.z += acceleration
+      if (camera.position.x > -100) camera.position.x -= camAcceleration
+    }
+    if (keyPress['d']) {
+      if (shipTurnSpeed < shipMaxTurnSpeed) shipTurnSpeed += acceleration
+      if (ship.rotation.z > -shipMaxTurnSpeed) ship.rotation.z -= acceleration
+      if (camera.position.x - 1 < 100) camera.position.x += camAcceleration
+    }
+    if (!keyPress['a']) {
+      if (shipTurnSpeed < 0) {
+        shipTurnSpeed += forceFeedback
+      }
+      if (ship.rotation.z > 0) ship.rotation.z -= acceleration
+      if (camera.position.x - 1 > ship.position.x)
+        camera.position.x -= camReadjust
+    }
+    if (!keyPress['d']) {
+      if (shipTurnSpeed > 0) {
+        shipTurnSpeed -= forceFeedback
+      }
+      if (ship.rotation.z < 0) ship.rotation.z += acceleration
+    }
+    if (camera.position.x < ship.position.x) camera.position.x += camReadjust
+
+    if (shipTurnSpeed < 0.01 && shipTurnSpeed > -0.01) shipTurnSpeed = 0
+    ship.position.x += shipTurnSpeed
+  }
+
+  allBuildings.forEach((building, i) => {
+    building.position.z += velocity
+    // Relocation and Remorph Logic //
     if (building.position.z > 200) {
-      building.position.z = -1200
+      building.position.z = Math.round(randomNumber(-900, -1000)) - 100
+      if (!gameStart) {
+        const beforeGamePos = [
+          Math.round(randomNumber(-110, -40)),
+          Math.round(randomNumber(110, 40)),
+        ]
+        building.position.x = beforeGamePos[randomNumber(0, 1)]
+      }
+      if (gameStart) {
+        building.position.x = Math.round(randomNumber(-110, 110))
+      }
+      building.position.y = -5
+
+      building.geometry.dispose()
+
+      const buildingWidth = Math.round(randomNumber(10, 20))
+      const buildingHeight = Math.round(randomNumber(20, 100))
+      const buildingDepth = Math.round(randomNumber(10, 20))
+
+      building.geometry = new THREE.BoxGeometry(
+        buildingWidth,
+        buildingHeight,
+        buildingDepth
+      )
+      building.geometry.computeBoundingBox()
+    }
+
+    building.updateMatrixWorld()
+
+    allBuildingsBB[i]
+      .copy(building.geometry.boundingBox)
+      .applyMatrix4(building.matrixWorld)
+  })
+
+  allBoundaries.map((boundary) => {
+    boundary.position.z += velocity
+    if (boundary.position.z > 200) {
+      boundary.position.z = -1200
     }
   })
 
-  allBuildingsBB.map((bb, i) => {
-    bb.copy(allBuildings[i].geometry.boundingBox).applyMatrix4(
-      allBuildings[i].matrixWorld
-    )
-  })
-
-  allBoundariesBB.map((bb, i) => {
-    bb.copy(allBoundaries[i].geometry.boundingBox).applyMatrix4(
-      allBoundaries[i].matrixWorld
-    )
-  })
+  shipBB.copy(ship.geometry.boundingBox).applyMatrix4(ship.matrixWorld)
 
   checkCollision()
   renderer.render(scene, camera)
