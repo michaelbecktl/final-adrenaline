@@ -36,7 +36,7 @@ document.body.appendChild(renderer.domElement)
 
 // Menu UI Logic//
 function resetParams() {
-  velocity = 1
+  velocity = velocitySettings
   velocityRamp = 1
   ship.position.set(0, 0, 1)
   shipTurnSpeed = 0
@@ -48,7 +48,7 @@ function resetParams() {
 
 function startGame() {
   resetParams()
-  velocityRamp = 1.0003
+  velocityRamp = rampSettings
   setTimeout(() => {
     ;(gameStart = true), (timer = 0), (timerId = setInterval(addTime, 200))
   }, 100)
@@ -128,7 +128,7 @@ function playExplosion() {
 // explosions.forEach((sfx) => (sfx.volume = 0.15))
 
 // Field //
-const fieldGeometry = new THREE.PlaneGeometry(1000, 1000)
+const fieldGeometry = new THREE.PlaneGeometry(500, 500)
 const fieldMaterial = new THREE.MeshBasicMaterial({
   // color: 0xd2bca5,
   color: 0x20293e,
@@ -136,12 +136,12 @@ const fieldMaterial = new THREE.MeshBasicMaterial({
 
 const field = new THREE.Mesh(fieldGeometry, fieldMaterial)
 field.rotation.x = -Math.PI / 2
-field.position.y = -4
+field.position.y = -2
 scene.add(field)
 
 // Ship Body //
-const length = 2,
-  width = 0.1
+const length = 1,
+  width = 0.05
 
 const shape = new THREE.Shape()
 shape.moveTo(0, 0)
@@ -151,13 +151,13 @@ shape.lineTo(length, 0)
 shape.lineTo(0, 0)
 
 const extrudeSettings = {
-  steps: 2,
-  depth: 3,
+  steps: 1,
+  depth: 1.5,
   bevelEnabled: true,
-  bevelThickness: 1.2,
-  bevelSize: 1,
-  bevelOffset: 0.5,
-  bevelSegments: 1,
+  bevelThickness: 0.6,
+  bevelSize: 0.5,
+  bevelOffset: 0.25,
+  bevelSegments: 0.5,
 }
 
 const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
@@ -225,17 +225,17 @@ const randomNumber = (min, max) =>
 function createBuilding() {
   // Building Dimensions //
   const buildingWidth = Math.round(randomNumber(10, 20))
-  const buildingHeight = Math.round(randomNumber(20, 100))
-  const buildingDepth = Math.round(randomNumber(10, 20))
+  const buildingHeight = Math.round(randomNumber(20, 60))
+  const buildingDepth = Math.round(randomNumber(5, 20))
 
   // Building Spawn Points //
   const beforeGamePos = [
-    Math.round(randomNumber(-110, -20)),
-    Math.round(randomNumber(110, 20)),
+    Math.round(randomNumber(-55, -10)),
+    Math.round(randomNumber(55, 10)),
   ]
   const buildingPosX = beforeGamePos[randomNumber(0, 1)]
-  const buildingPosY = -5
-  const buildingPosZ = Math.round(randomNumber(0, -1000)) - 100
+  const buildingPosY = -3
+  const buildingPosZ = Math.round(randomNumber(0, -400)) - 100
 
   const buildingGeometry = new THREE.BoxGeometry(
     buildingWidth,
@@ -270,13 +270,13 @@ const allBuildingsBB = allBuildings.map((mesh) => createBoundingBox(mesh))
 
 // Side Boundaries //
 function createBoundary(minX, maxX, axisZ) {
-  const boundaryWidth = 20
-  const boundaryHeight = Math.round(randomNumber(40, 60))
-  const boundaryDepth = 400
+  const boundaryWidth = 10
+  const boundaryHeight = Math.round(randomNumber(20, 30))
+  const boundaryDepth = 200
 
   // Building Spawn Points //
   const boundaryPosX = Math.round(randomNumber(minX, maxX))
-  const boundaryPosY = -5
+  const boundaryPosY = -3
   const boundaryPosZ = axisZ
 
   const boundaryGeometry = new THREE.BoxGeometry(
@@ -293,14 +293,14 @@ function createBoundary(minX, maxX, axisZ) {
 }
 
 const allBoundaries = [
-  createBoundary(-130, -140, 0),
-  createBoundary(-130, -140, -400),
-  createBoundary(-130, -140, -800),
-  createBoundary(-130, -140, -1200),
-  createBoundary(130, 140, 0),
-  createBoundary(130, 140, -400),
-  createBoundary(130, 140, -800),
-  createBoundary(130, 140, -1200),
+  createBoundary(-65, -70, 0),
+  createBoundary(-65, -70, -200),
+  createBoundary(-65, -70, -400),
+  createBoundary(-65, -70, -600),
+  createBoundary(65, 70, 0),
+  createBoundary(65, 70, -200),
+  createBoundary(65, 70, -400),
+  createBoundary(65, 70, -600),
 ]
 
 allBoundaries.forEach((boundary) => scene.add(boundary))
@@ -314,7 +314,7 @@ const allBoundariesBB = allBoundaries.map((mesh) => createBoundingBox(mesh))
 
 // Light //
 const light = new THREE.DirectionalLight(0xffffff, 3)
-light.position.set(0, 10, 10)
+light.position.set(0, 5, 5)
 scene.add(light)
 
 // PC Controls //
@@ -368,15 +368,17 @@ document.addEventListener('touchend', function (event) {
 })
 
 // Animation //
-let velocity = 1
+let velocity = 0.5
+let velocitySettings = 0.5
 let velocityRamp = 1
+const rampSettings = 1.00015
 let shipTurnSpeed = 0
-const shipMaxTurnSpeed = 0.8
-const acceleration = 0.02
-const forceFeedback = 0.04
+const shipMaxTurnSpeed = 0.4
+const acceleration = 0.01
+const forceFeedback = 0.02
 
-const camAcceleration = 0.8
-const camReadjust = 0.08
+const camAcceleration = 0.4
+const camReadjust = 0.04
 
 function animate() {
   velocity *= velocityRamp
@@ -416,25 +418,25 @@ function animate() {
   allBuildings.forEach((building, i) => {
     building.position.z += velocity
     // Relocation and Remorph Logic //
-    if (building.position.z > 200) {
-      building.position.z = Math.round(randomNumber(-900, -1000)) - 100
+    if (building.position.z > 100) {
+      building.position.z = Math.round(randomNumber(-400, -500)) - 100
       if (!gameStart) {
         const beforeGamePos = [
-          Math.round(randomNumber(-110, -40)),
-          Math.round(randomNumber(110, 40)),
+          Math.round(randomNumber(-65, -20)),
+          Math.round(randomNumber(65, 20)),
         ]
         building.position.x = beforeGamePos[randomNumber(0, 1)]
       }
       if (gameStart) {
-        building.position.x = Math.round(randomNumber(-110, 110))
+        building.position.x = Math.round(randomNumber(-55, 55))
       }
       building.position.y = -5
 
       building.geometry.dispose()
 
       const buildingWidth = Math.round(randomNumber(10, 20))
-      const buildingHeight = Math.round(randomNumber(20, 100))
-      const buildingDepth = Math.round(randomNumber(10, 20))
+      const buildingHeight = Math.round(randomNumber(20, 60))
+      const buildingDepth = Math.round(randomNumber(5, 20))
 
       building.geometry = new THREE.BoxGeometry(
         buildingWidth,
@@ -453,8 +455,8 @@ function animate() {
 
   allBoundaries.map((boundary) => {
     boundary.position.z += velocity
-    if (boundary.position.z > 200) {
-      boundary.position.z = -1200
+    if (boundary.position.z > 100) {
+      boundary.position.z = -600
     }
   })
 
