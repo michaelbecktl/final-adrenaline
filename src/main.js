@@ -304,18 +304,18 @@ const light = new THREE.DirectionalLight(0xffffff, 3)
 light.position.set(0, 10, 10)
 scene.add(light)
 
-// Controls //
+// PC Controls //
 const keyPress = {}
 
 document.addEventListener('keydown', function (event) {
   switch (event.key) {
     case 'a':
     case 'ArrowLeft':
-      keyPress[event.key] = true
+      keyPress.left = true
       break
     case 'd':
     case 'ArrowRight':
-      keyPress[event.key] = true
+      keyPress.right = true
       break
   }
 })
@@ -323,12 +323,33 @@ document.addEventListener('keydown', function (event) {
 document.addEventListener('keyup', function (event) {
   switch (event.key) {
     case 'a':
-      keyPress[event.key] = false
+    case 'ArrowLeft':
+      keyPress.left = false
       break
     case 'd':
-      keyPress[event.key] = false
+    case 'ArrowRight':
+      keyPress.right = false
       break
   }
+})
+
+// Mobile Controls //
+
+document.addEventListener('touchstart', function (event) {
+  const touch = event.touches[0]
+  if (touch.clientX < window.innerWidth / 2) {
+    keyPress.left = true
+    keyPress.right = false
+  }
+  if (touch.clientX > window.innerWidth / 2) {
+    keyPress.left = false
+    keyPress.right = true
+  }
+})
+
+document.addEventListener('touchend', function (event) {
+  keyPress.left = false
+  keyPress.right = false
 })
 
 // Animation //
@@ -349,17 +370,17 @@ function animate() {
   if (!gameStart) {
   }
   if (gameStart) {
-    if (keyPress['a']) {
+    if (keyPress.left) {
       if (shipTurnSpeed > -shipMaxTurnSpeed) shipTurnSpeed -= acceleration
       if (ship.rotation.z < shipMaxTurnSpeed) ship.rotation.z += acceleration
       if (camera.position.x > -100) camera.position.x -= camAcceleration
     }
-    if (keyPress['d']) {
+    if (keyPress.right) {
       if (shipTurnSpeed < shipMaxTurnSpeed) shipTurnSpeed += acceleration
       if (ship.rotation.z > -shipMaxTurnSpeed) ship.rotation.z -= acceleration
       if (camera.position.x - 1 < 100) camera.position.x += camAcceleration
     }
-    if (!keyPress['a']) {
+    if (!keyPress.left) {
       if (shipTurnSpeed < 0) {
         shipTurnSpeed += forceFeedback
       }
@@ -367,7 +388,7 @@ function animate() {
       if (camera.position.x - 1 > ship.position.x)
         camera.position.x -= camReadjust
     }
-    if (!keyPress['d']) {
+    if (!keyPress.right) {
       if (shipTurnSpeed > 0) {
         shipTurnSpeed -= forceFeedback
       }
