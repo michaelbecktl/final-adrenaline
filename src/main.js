@@ -349,6 +349,7 @@ document.addEventListener('keyup', function (event) {
 // Mobile Controls //
 
 document.addEventListener('touchstart', function (event) {
+  event.preventDefault()
   const touch = event.touches[0]
   if (touch.clientX < window.innerWidth / 2) {
     keyPress.left = true
@@ -361,6 +362,7 @@ document.addEventListener('touchstart', function (event) {
 })
 
 document.addEventListener('touchend', function (event) {
+  event.preventDefault()
   keyPress.left = false
   keyPress.right = false
 })
