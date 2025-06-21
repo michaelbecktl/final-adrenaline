@@ -101,9 +101,9 @@ function setVolume() {
 setVolume()
 
 // Sound Effect //
-const explodeSFX1 = new Audio('public/8-bit-explosion-3-340456.mp3')
-const explodeSFX2 = new Audio('public/8-bit-explosion-10-340462.mp3')
-const explodeSFX3 = new Audio('public/explosion-9-340460.mp3')
+const explodeSFX1 = new Audio('/8-bit-explosion-3-340456.mp3')
+const explodeSFX2 = new Audio('/8-bit-explosion-10-340462.mp3')
+const explodeSFX3 = new Audio('/explosion-9-340460.mp3')
 
 const explosions = [explodeSFX1, explodeSFX2, explodeSFX3]
 explosions.forEach((sfx) => (sfx.volume = 0.15))
