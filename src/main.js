@@ -222,51 +222,57 @@ function checkCollision() {
 const randomNumber = (min, max) =>
   Math.floor(Math.random() * (max - min + 1)) + min
 
-function createBuilding() {
-  // Building Dimensions //
+const buildingGeometry = new THREE.BoxGeometry(1, 1, 1)
+const buildingMaterial = new THREE.MeshStandardMaterial({ color: 0xd5d5d5 })
+
+const numOfBuildings = 15
+const allBuildings = new THREE.InstancedMesh(
+  buildingGeometry,
+  buildingMaterial,
+  numOfBuildings
+)
+
+scene.add(allBuildings)
+
+const allBuildingsBB = []
+
+const positions = []
+const scales = []
+const buildingParams = new THREE.Object3D()
+
+for (let i = 0; i < numOfBuildings; i++) {
   const buildingWidth = Math.round(randomNumber(10, 20))
   const buildingHeight = Math.round(randomNumber(20, 100))
   const buildingDepth = Math.round(randomNumber(10, 20))
 
-  // Building Spawn Points //
+  buildingParams.scale.set(buildingWidth, buildingHeight, buildingDepth)
+
   const beforeGamePos = [
     Math.round(randomNumber(-110, -20)),
     Math.round(randomNumber(110, 20)),
   ]
+
   const buildingPosX = beforeGamePos[randomNumber(0, 1)]
   const buildingPosY = -5
   const buildingPosZ = Math.round(randomNumber(0, -1000)) - 100
 
-  const buildingGeometry = new THREE.BoxGeometry(
-    buildingWidth,
-    buildingHeight,
-    buildingDepth
+  positions[i] = new THREE.Vector3(buildingPosX, buildingPosY, buildingPosZ)
+  scales[i] = new THREE.Vector3(buildingWidth, buildingHeight, buildingDepth)
+
+  buildingParams.position.copy(positions[i])
+  buildingParams.scale.copy(scales[i])
+
+  buildingParams.updateMatrix()
+  allBuildings.setMatrixAt(i, buildingParams.matrix)
+
+  const buildingBB = new THREE.Box3().setFromCenterAndSize(
+    new THREE.Vector3(buildingPosX, buildingPosY, buildingPosZ),
+    new THREE.Vector3(buildingWidth, buildingHeight, buildingDepth)
   )
-  const buildingMaterial = new THREE.MeshStandardMaterial({ color: 0xd5d5d5 })
-
-  const buildingMesh = new THREE.Mesh(buildingGeometry, buildingMaterial)
-  buildingMesh.position.set(buildingPosX, buildingPosY, buildingPosZ)
-
-  return buildingMesh
+  allBuildingsBB[i] = buildingBB
 }
 
-const numOfBuildings = 15
-const allBuildings = Array(numOfBuildings).fill().map(createBuilding)
-
-allBuildings.forEach((mesh) => scene.add(mesh))
-
-// Buildings Bounding Box //
-function createBoundingBox(targetMesh) {
-  const newBoundingBox = new THREE.Box3(
-    new THREE.Vector3(),
-    new THREE.Vector3()
-  )
-  newBoundingBox.setFromObject(targetMesh)
-
-  return newBoundingBox
-}
-
-const allBuildingsBB = allBuildings.map((mesh) => createBoundingBox(mesh))
+allBuildings.instanceMatrix.needsUpdate = true
 
 // Side Boundaries //
 function createBoundary(minX, maxX, axisZ) {
@@ -284,9 +290,8 @@ function createBoundary(minX, maxX, axisZ) {
     boundaryHeight,
     boundaryDepth
   )
-  const boundaryMaterial = new THREE.MeshStandardMaterial({ color: 0xd5d5d5 })
 
-  const boundaryMesh = new THREE.Mesh(boundaryGeometry, boundaryMaterial)
+  const boundaryMesh = new THREE.Mesh(boundaryGeometry, buildingMaterial)
   boundaryMesh.position.set(boundaryPosX, boundaryPosY, boundaryPosZ)
 
   return boundaryMesh
@@ -303,14 +308,18 @@ const allBoundaries = [
   createBoundary(130, 140, -1200),
 ]
 
+function createBoundingBox(targetMesh) {
+  const newBoundingBox = new THREE.Box3(
+    new THREE.Vector3(),
+    new THREE.Vector3()
+  )
+  newBoundingBox.setFromObject(targetMesh)
+
+  return newBoundingBox
+}
+
 allBoundaries.forEach((boundary) => scene.add(boundary))
 const allBoundariesBB = allBoundaries.map((mesh) => createBoundingBox(mesh))
-
-// Axes Helper //
-// const axesHelper = new THREE.AxesHelper(5)
-// scene.add(axesHelper)
-
-// camera.position.set(1, 3, 10)
 
 // Light //
 const light = new THREE.DirectionalLight(0xffffff, 3)
@@ -384,7 +393,7 @@ const acceleration = 0.02
 const forceFeedback = 0.04
 
 const camAcceleration = 0.8
-const camReadjust = 0.08
+const camReadjust = 0.1
 
 function animate() {
   velocity *= velocityRamp
@@ -421,43 +430,41 @@ function animate() {
     ship.position.x += shipTurnSpeed
   }
 
-  allBuildings.forEach((building, i) => {
-    building.position.z += velocity
+  for (let i = 0; i < numOfBuildings; i++) {
+    positions[i].z += velocity
     // Relocation and Remorph Logic //
-    if (building.position.z > 200) {
-      building.position.z = Math.round(randomNumber(-900, -1000)) - 100
-      if (!gameStart) {
-        const beforeGamePos = [
-          Math.round(randomNumber(-110, -40)),
-          Math.round(randomNumber(110, 40)),
-        ]
-        building.position.x = beforeGamePos[randomNumber(0, 1)]
-      }
-      if (gameStart) {
-        building.position.x = Math.round(randomNumber(-110, 110))
-      }
-      building.position.y = -5
-
-      building.geometry.dispose()
+    if (positions[i].z > 200) {
+      positions[i].y = -5
+      positions[i].z = Math.round(randomNumber(-900, -1000)) - 100
 
       const buildingWidth = Math.round(randomNumber(10, 20))
       const buildingHeight = Math.round(randomNumber(20, 100))
       const buildingDepth = Math.round(randomNumber(10, 20))
 
-      building.geometry = new THREE.BoxGeometry(
-        buildingWidth,
-        buildingHeight,
-        buildingDepth
-      )
-      building.geometry.computeBoundingBox()
+      console.log(scales[i])
+      scales[i].set(buildingWidth, buildingHeight, buildingDepth)
+
+      if (!gameStart) {
+        const beforeGamePos = [
+          Math.round(randomNumber(-110, -40)),
+          Math.round(randomNumber(110, 40)),
+        ]
+        positions[i].x = beforeGamePos[randomNumber(0, 1)]
+      }
+      if (gameStart) {
+        positions[i].x = Math.round(randomNumber(-110, 110))
+      }
     }
 
-    building.updateMatrixWorld()
+    buildingParams.position.copy(positions[i])
+    buildingParams.scale.copy(scales[i])
 
-    allBuildingsBB[i]
-      .copy(building.geometry.boundingBox)
-      .applyMatrix4(building.matrixWorld)
-  })
+    buildingParams.updateMatrix()
+    allBuildings.setMatrixAt(i, buildingParams.matrix)
+
+    allBuildingsBB[i].setFromCenterAndSize(positions[i], scales[i])
+  }
+  allBuildings.instanceMatrix.needsUpdate = true
 
   allBoundaries.map((boundary) => {
     boundary.position.z += velocity
