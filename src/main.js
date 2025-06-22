@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/Addons.js'
 import { EffectComposer } from 'three/examples/jsm/Addons.js'
 import { RenderPass } from 'three/examples/jsm/Addons.js'
 import { UnrealBloomPass } from 'three/examples/jsm/Addons.js'
+import { bitOr } from 'three/tsl'
 
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(0x161225)
@@ -14,8 +15,9 @@ const camera = new THREE.PerspectiveCamera(
   1000
 )
 
-const renderer = new THREE.WebGLRenderer()
+const renderer = new THREE.WebGLRenderer({ antialias: false })
 renderer.setSize(window.innerWidth, window.innerHeight)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
 document.body.appendChild(renderer.domElement)
 
 // const renderScene = new RenderPass(scene, camera)
@@ -163,7 +165,6 @@ const extrudeSettings = {
 const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
 const material = new THREE.MeshStandardMaterial({
   color: 0xeeeeee,
-  flatShading: true,
 })
 
 const ship = new THREE.Mesh(geometry, material)
@@ -222,12 +223,24 @@ function checkCollision() {
 const randomNumber = (min, max) =>
   Math.floor(Math.random() * (max - min + 1)) + min
 
-function createBuilding() {
-  // Building Dimensions //
-  const buildingWidth = Math.round(randomNumber(10, 20))
-  const buildingHeight = Math.round(randomNumber(20, 100))
-  const buildingDepth = Math.round(randomNumber(10, 20))
+// PRE-GENERATED BUILDING TEST //
 
+const buildingGeometries = []
+
+for (let x = 0; x < 5; x++) {
+  let buildingWidth = 10 + x * 5
+  for (let y = 0; y < 5; y++) {
+    let buildingHeight = 100 - x * 16
+
+    const buildingDepth = 15
+
+    buildingGeometries.push(
+      new THREE.BoxGeometry(buildingWidth, buildingHeight, buildingDepth)
+    )
+  }
+}
+
+function createBuilding() {
   // Building Spawn Points //
   const beforeGamePos = [
     Math.round(randomNumber(-110, -20)),
@@ -237,14 +250,12 @@ function createBuilding() {
   const buildingPosY = -5
   const buildingPosZ = Math.round(randomNumber(0, -1000)) - 100
 
-  const buildingGeometry = new THREE.BoxGeometry(
-    buildingWidth,
-    buildingHeight,
-    buildingDepth
-  )
   const buildingMaterial = new THREE.MeshStandardMaterial({ color: 0xd5d5d5 })
 
-  const buildingMesh = new THREE.Mesh(buildingGeometry, buildingMaterial)
+  const buildingMesh = new THREE.Mesh(
+    buildingGeometries[randomNumber(0, 24)],
+    buildingMaterial
+  )
   buildingMesh.position.set(buildingPosX, buildingPosY, buildingPosZ)
 
   return buildingMesh
@@ -436,19 +447,8 @@ function animate() {
       if (gameStart) {
         building.position.x = Math.round(randomNumber(-110, 110))
       }
-      building.position.y = -5
 
-      building.geometry.dispose()
-
-      const buildingWidth = Math.round(randomNumber(10, 20))
-      const buildingHeight = Math.round(randomNumber(20, 100))
-      const buildingDepth = Math.round(randomNumber(10, 20))
-
-      building.geometry = new THREE.BoxGeometry(
-        buildingWidth,
-        buildingHeight,
-        buildingDepth
-      )
+      building.geometry = buildingGeometries[randomNumber(0, 24)]
       building.geometry.computeBoundingBox()
     }
 
