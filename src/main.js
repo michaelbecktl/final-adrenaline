@@ -441,7 +441,6 @@ function animate() {
       const buildingHeight = Math.round(randomNumber(20, 100))
       const buildingDepth = Math.round(randomNumber(10, 20))
 
-      console.log(scales[i])
       scales[i].set(buildingWidth, buildingHeight, buildingDepth)
 
       if (!gameStart) {
