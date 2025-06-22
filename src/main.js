@@ -15,8 +15,9 @@ const camera = new THREE.PerspectiveCamera(
   1000
 )
 
-const renderer = new THREE.WebGLRenderer()
+const renderer = new THREE.WebGLRenderer({ antialias: false })
 renderer.setSize(window.innerWidth, window.innerHeight)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
 document.body.appendChild(renderer.domElement)
 
 // const renderScene = new RenderPass(scene, camera)
@@ -164,7 +165,6 @@ const extrudeSettings = {
 const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
 const material = new THREE.MeshStandardMaterial({
   color: 0xeeeeee,
-  flatShading: true,
 })
 
 const ship = new THREE.Mesh(geometry, material)
