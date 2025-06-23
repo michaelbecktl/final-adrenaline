@@ -1,9 +1,5 @@
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/Addons.js'
-import { EffectComposer } from 'three/examples/jsm/Addons.js'
-import { RenderPass } from 'three/examples/jsm/Addons.js'
-import { UnrealBloomPass } from 'three/examples/jsm/Addons.js'
-import { bitOr } from 'three/tsl'
+import Stats from 'stats.js'
 
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(0x161225)
@@ -19,6 +15,10 @@ const renderer = new THREE.WebGLRenderer({ antialias: false })
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio))
 document.body.appendChild(renderer.domElement)
+
+const stats = new Stats()
+stats.showPanel(1) // 0: fps, 1: ms, 2: mb, 3+: custom
+document.body.appendChild(stats.dom)
 
 // const renderScene = new RenderPass(scene, camera)
 // const bloomPass = new UnrealBloomPass(
@@ -401,6 +401,7 @@ const camAcceleration = 0.8
 const camReadjust = 0.08
 
 function animate() {
+  stats.begin()
   velocity *= velocityRamp
 
   // Controls //
@@ -457,7 +458,7 @@ function animate() {
       building.material.opacity = 0
     }
 
-    if (building.material.opacity < 1)
+    if (building.material.opacity < 1 && building.position.z > -900)
       building.material.opacity += 0.004 * velocityRamp
 
     building.updateMatrixWorld()
@@ -485,5 +486,6 @@ function animate() {
   if (gameStart) checkCollision()
   renderer.render(scene, camera)
   // composer.render()
+  stats.end()
 }
 renderer.setAnimationLoop(animate)
