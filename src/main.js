@@ -162,12 +162,16 @@ const extrudeSettings = {
   bevelSegments: 1,
 }
 
-const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
-const material = new THREE.MeshStandardMaterial({
+const shipGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
+const shipMaterial = new THREE.MeshStandardMaterial({
   color: 0xeeeeee,
 })
+const phaseMaterial = new THREE.MeshStandardMaterial({
+  color: 0x17fff7,
+  wireframe: true,
+})
 
-const ship = new THREE.Mesh(geometry, material)
+const ship = new THREE.Mesh(shipGeometry, shipMaterial)
 
 ship.position.set(0, 0, 1)
 
@@ -217,6 +221,19 @@ function checkCollision() {
   allBoundariesBB.forEach((boundary) => {
     if (shipBB.intersectsBox(boundary)) collision()
   })
+}
+
+// Phase Shift //
+
+let isPhaseShift = false
+
+function phaseShift() {
+  ship.material = phaseMaterial
+  isPhaseShift = true
+  setTimeout(() => {
+    isPhaseShift = false
+    ship.material = shipMaterial
+  }, 1500)
 }
 
 // Buildings //
@@ -327,7 +344,8 @@ const allBoundariesBB = allBoundaries.map((mesh) => createBoundingBox(mesh))
 // camera.position.set(1, 3, 10)
 
 // Light //
-const light = new THREE.DirectionalLight(0xffffff, 3)
+// const light = new THREE.DirectionalLight(0xffffff, 3)
+const light = new THREE.HemisphereLight(0xffffff, 0x20293e, 2.5)
 light.position.set(0, 10, 10)
 scene.add(light)
 
@@ -343,6 +361,10 @@ document.addEventListener('keydown', function (event) {
     case 'd':
     case 'ArrowRight':
       keyPress.right = true
+      break
+    case 's':
+    case 'ArrowDown':
+      phaseShift()
       break
   }
 })
@@ -483,7 +505,7 @@ function animate() {
     }
   })
 
-  if (gameStart) checkCollision()
+  if (gameStart && !isPhaseShift) checkCollision()
   renderer.render(scene, camera)
   // composer.render()
   stats.end()
