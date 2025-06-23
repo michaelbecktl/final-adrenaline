@@ -17,7 +17,7 @@ const camera = new THREE.PerspectiveCamera(
 
 const renderer = new THREE.WebGLRenderer({ antialias: false })
 renderer.setSize(window.innerWidth, window.innerHeight)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+renderer.setPixelRatio(Math.min(window.devicePixelRatio))
 document.body.appendChild(renderer.domElement)
 
 // const renderScene = new RenderPass(scene, camera)
@@ -250,7 +250,10 @@ function createBuilding() {
   const buildingPosY = -5
   const buildingPosZ = Math.round(randomNumber(0, -1000)) - 100
 
-  const buildingMaterial = new THREE.MeshStandardMaterial({ color: 0xd5d5d5 })
+  const buildingMaterial = new THREE.MeshStandardMaterial({
+    color: 0xd5d5d5,
+    transparent: true,
+  })
 
   const buildingMesh = new THREE.Mesh(
     buildingGeometries[randomNumber(0, 24)],
@@ -436,7 +439,7 @@ function animate() {
     building.position.z += velocity
     // Relocation and Remorph Logic //
     if (building.position.z > 200) {
-      building.position.z = Math.round(randomNumber(-900, -1000)) - 100
+      building.position.z = Math.round(randomNumber(-900, -1000))
       if (!gameStart) {
         const beforeGamePos = [
           Math.round(randomNumber(-110, -40)),
@@ -450,23 +453,34 @@ function animate() {
 
       building.geometry = buildingGeometries[randomNumber(0, 24)]
       building.geometry.computeBoundingBox()
+
+      building.material.opacity = 0
     }
+
+    if (building.material.opacity < 1)
+      building.material.opacity += 0.004 * velocityRamp
 
     building.updateMatrixWorld()
 
     allBuildingsBB[i]
       .copy(building.geometry.boundingBox)
       .applyMatrix4(building.matrixWorld)
+
+    shipBB.copy(ship.geometry.boundingBox).applyMatrix4(ship.matrixWorld)
   })
 
-  allBoundaries.map((boundary) => {
+  allBoundaries.map((boundary, i) => {
     boundary.position.z += velocity
     if (boundary.position.z > 200) {
       boundary.position.z = -1200
     }
-  })
 
-  shipBB.copy(ship.geometry.boundingBox).applyMatrix4(ship.matrixWorld)
+    if (gameStart) {
+      allBoundariesBB[i]
+        .copy(boundary.geometry.boundingBox)
+        .applyMatrix4(boundary.matrixWorld)
+    }
+  })
 
   if (gameStart) checkCollision()
   renderer.render(scene, camera)
