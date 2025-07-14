@@ -400,44 +400,59 @@ const forceFeedback = 0.04
 const camAcceleration = 0.8
 const camReadjust = 0.08
 
+// Frame Rate settings //
+
+let clock = new THREE.Clock()
+let frameRate = 120
+let interval = 1 / frameRate
+let frameCap = 0
+
+
 function animate() {
   stats.begin()
-  velocity *= velocityRamp
 
+  const frameDelta = clock.getDelta()
+  const delta = frameDelta * 100
+  frameCap += frameDelta
+
+  if (frameCap > interval) {
+    frameCap = frameCap % interval
+
+  velocity *= velocityRamp
   // Controls //
   if (gameStart) {
     if (keyPress.left) {
-      if (shipTurnSpeed > -shipMaxTurnSpeed) shipTurnSpeed -= acceleration
-      if (ship.rotation.z < shipMaxTurnSpeed) ship.rotation.z += acceleration
-      if (camera.position.x > -100) camera.position.x -= camAcceleration
+      if (shipTurnSpeed > -shipMaxTurnSpeed) shipTurnSpeed -= acceleration * delta
+      if (ship.rotation.z < shipMaxTurnSpeed) ship.rotation.z += acceleration * delta
+      if (camera.position.x > -100) camera.position.x -= camAcceleration * delta
     }
     if (keyPress.right) {
-      if (shipTurnSpeed < shipMaxTurnSpeed) shipTurnSpeed += acceleration
-      if (ship.rotation.z > -shipMaxTurnSpeed) ship.rotation.z -= acceleration
-      if (camera.position.x - 1 < 100) camera.position.x += camAcceleration
+      if (shipTurnSpeed < shipMaxTurnSpeed) shipTurnSpeed += acceleration * delta
+      if (ship.rotation.z > -shipMaxTurnSpeed) ship.rotation.z -= acceleration * delta
+      if (camera.position.x - 1 < 100) camera.position.x += camAcceleration * delta
     }
     if (!keyPress.left) {
       if (shipTurnSpeed < 0) {
-        shipTurnSpeed += forceFeedback
+        shipTurnSpeed += forceFeedback * delta
       }
-      if (ship.rotation.z > 0) ship.rotation.z -= acceleration
+      if (ship.rotation.z > 0) ship.rotation.z -= acceleration * delta
       if (camera.position.x - 1 > ship.position.x)
-        camera.position.x -= camReadjust
+        camera.position.x -= camReadjust * delta
     }
     if (!keyPress.right) {
       if (shipTurnSpeed > 0) {
-        shipTurnSpeed -= forceFeedback
+        shipTurnSpeed -= forceFeedback * delta
       }
-      if (ship.rotation.z < 0) ship.rotation.z += acceleration
+      if (ship.rotation.z < 0) ship.rotation.z += acceleration * delta
     }
-    if (camera.position.x < ship.position.x) camera.position.x += camReadjust
+    if (camera.position.x < ship.position.x) camera.position.x += camReadjust * delta
 
     if (shipTurnSpeed < 0.01 && shipTurnSpeed > -0.01) shipTurnSpeed = 0
-    ship.position.x += shipTurnSpeed
+    ship.position.x += shipTurnSpeed * delta
   }
 
   allBuildings.forEach((building, i) => {
-    building.position.z += velocity
+    building.position.z += velocity * delta
     // Relocation and Remorph Logic //
     if (building.position.z > 200) {
       building.position.z = Math.round(randomNumber(-900, -1000))
@@ -459,7 +474,7 @@ function animate() {
     }
 
     if (building.material.opacity < 1 && building.position.z > -900)
-      building.material.opacity += 0.004 * velocityRamp
+      building.material.opacity += 0.004 * velocityRamp * delta
 
     building.updateMatrixWorld()
 
@@ -471,7 +486,7 @@ function animate() {
   })
 
   allBoundaries.map((boundary, i) => {
-    boundary.position.z += velocity
+    boundary.position.z += velocity * delta
     if (boundary.position.z > 200) {
       boundary.position.z = -1200
     }
@@ -484,8 +499,11 @@ function animate() {
   })
 
   if (gameStart) checkCollision()
+  
+  
   renderer.render(scene, camera)
   // composer.render()
+  }
   stats.end()
 }
 renderer.setAnimationLoop(animate)
